@@ -1,5 +1,8 @@
 #include "provided.h"
 #include <string>
+#include <fstream>
+#include <sstream>
+#include "substituteMyMap.h"
 using namespace std;
 
 class MapLoaderImpl
@@ -10,6 +13,8 @@ public:
 	bool load(string mapFile);
 	size_t getNumSegments() const;
 	bool getSegment(size_t segNum, StreetSegment& seg) const;
+
+    vector<StreetSegment> ss;
 };
 
 MapLoaderImpl::MapLoaderImpl()
@@ -22,17 +27,49 @@ MapLoaderImpl::~MapLoaderImpl()
 
 bool MapLoaderImpl::load(string mapFile)
 {
-	return false;  // This compiles, but may not be correct
+    ifstream data(mapFile);
+    if (data.fail() || data.bad() || !data.good() || !data.is_open()) { return false; }
+
+    for (string line; getline(data, line); ) {
+        StreetSegment s;
+        s.streetName = line;
+
+        getline(data, line);
+        GeoCoord start(line.substr(0,10), line.substr(12,12));
+        GeoCoord end(line.substr(25,10), line.substr(36, 12));
+        GeoSegment gs(start, end);
+        s.segment = gs;
+
+        vector<Attraction> attractions;
+        s.attractions = attractions;
+        getline(data, line);
+        int num = stoi(line);
+        for (int i = 0; i < num; i++) {
+            Attraction a;
+            getline(data,line);
+            stringstream ss(line);
+            getline(ss, line, '|');
+            a.name = line;
+
+            getline(ss, line);
+            GeoCoord c(line.substr(0,10), line.substr(12,12));
+            a.geocoordinates = c;
+            attractions.push_back(a);
+        }
+    }
+	return true;  // This compiles, but may not be correct
 }
 
 size_t MapLoaderImpl::getNumSegments() const
 {
-	return 0; // This compiles, but may not be correct
+	return ss.size();
 }
 
 bool MapLoaderImpl::getSegment(size_t segNum, StreetSegment &seg) const
 {
-	return false;  // This compiles, but may not be correct
+    if (segNum > ss.size()) {return false;}
+    seg = ss[segNum];
+    return true;
 }
 
 //******************** MapLoader functions ************************************
