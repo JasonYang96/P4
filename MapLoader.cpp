@@ -2,6 +2,8 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
+#include <string>
 #include "substituteMyMap.h"
 using namespace std;
 
@@ -49,6 +51,7 @@ bool MapLoaderImpl::load(string mapFile)
             getline(data,line);
             stringstream ss(line);
             getline(ss, line, '|');
+            transform(line.begin(), line.end(), line.begin(), ::tolower);
             a.name = line;
 
             getline(ss, line);
